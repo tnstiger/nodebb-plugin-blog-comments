@@ -1,358 +1,457 @@
-(function() {
-	"use strict";
-	
-	var articlePath = window.location.protocol + '//' + window.location.host + window.location.pathname;
+(function () {
+  "use strict";
 
-	var pluginURL = nodeBBURL + '/plugins/nodebb-plugin-blog-comments',
-		savedText, nodebbDiv, contentDiv, commentsDiv, commentsCounter, commentsAuthor, commentsCategory;
+  var articlePath =
+    window.location.protocol +
+    "//" +
+    window.location.host +
+    window.location.pathname;
 
-	var stylesheet = document.createElement("link");
-	stylesheet.setAttribute("rel", "stylesheet");
-	stylesheet.setAttribute("type", "text/css");
-	stylesheet.setAttribute("href", pluginURL + '/css/comments.css');
+  var pluginURL = nodeBBURL + "/plugins/nodebb-plugin-blog-comments",
+    savedText,
+    nodebbDiv,
+    contentDiv,
+    commentsDiv,
+    commentsCounter,
+    commentsAuthor,
+    commentsCategory;
 
-	document.getElementsByTagName("head")[0].appendChild(stylesheet);
-	document.getElementById('nodebb-comments').insertAdjacentHTML('beforebegin', '<div id="nodebb"></div>');
-	nodebbDiv = document.getElementById('nodebb');
+  var stylesheet = document.createElement("link");
+  stylesheet.setAttribute("rel", "stylesheet");
+  stylesheet.setAttribute("type", "text/css");
+  stylesheet.setAttribute("href", pluginURL + "/css/comments.css");
 
-	function newXHR() {
-		try {
-	        return XHR = new XMLHttpRequest();
-	    } catch (e) {
-	        try {
-	            return XHR = new ActiveXObject("Microsoft.XMLHTTP");
-	        } catch (e) {
-	            return XHR = new ActiveXObject("Msxml2.XMLHTTP");
-	        }
-	    }
-	}
+  document.getElementsByTagName("head")[0].appendChild(stylesheet);
+  document
+    .getElementById("nodebb-comments")
+    .insertAdjacentHTML("beforebegin", '<div id="nodebb"></div>');
+  nodebbDiv = document.getElementById("nodebb");
 
-	var XHR = newXHR(), pagination = 0, modal;
+  function newXHR() {
+    try {
+      return (XHR = new XMLHttpRequest());
+    } catch (e) {
+      try {
+        return (XHR = new ActiveXObject("Microsoft.XMLHTTP"));
+      } catch (e) {
+        return (XHR = new ActiveXObject("Msxml2.XMLHTTP"));
+      }
+    }
+  }
 
-	function authenticate(type) {
-		savedText = contentDiv.value;
-		modal = window.open(nodeBBURL + "/" + type + "/#blog/authenticate","_blank","toolbar=no, scrollbars=no, resizable=no, width=600, height=675");
-		var timer = setInterval(function() {
-			if(modal.closed) {  
-				clearInterval(timer);
-				pagination = 0;
-				reloadComments();
-			}  
-		}, 500);
-	}
+  var XHR = newXHR(),
+    pagination = 0,
+    modal;
 
-	function normalizePost(post) {
-		return post.replace(/href="\/(?=\w)/g, 'href="' + nodeBBURL + '/')
-				.replace(/src="\/(?=\w)/g, 'src="' + nodeBBURL + '/');
-	}
+  function authenticate(type) {
+    savedText = contentDiv.value;
+    modal = window.open(
+      nodeBBURL + "/" + type + "/#blog/authenticate",
+      "_blank",
+      "toolbar=no, scrollbars=no, resizable=no, width=600, height=675"
+    );
+    var timer = setInterval(function () {
+      if (modal.closed) {
+        clearInterval(timer);
+        pagination = 0;
+        reloadComments();
+      }
+    }, 500);
+  }
 
-	XHR.onload = function() {
-		if (XHR.status >= 200 && XHR.status < 400) {
-			var data = JSON.parse(XHR.responseText), html;
+  function normalizePost(post) {
+    return post
+      .replace(/href="\/(?=\w)/g, 'href="' + nodeBBURL + "/")
+      .replace(/src="\/(?=\w)/g, 'src="' + nodeBBURL + "/");
+  }
 
-			commentsDiv = document.getElementById('nodebb-comments-list');
-			commentsCounter = document.getElementById('nodebb-comments-count');
-			commentsAuthor = document.getElementById('nodebb-comments-author');
-			commentsCategory = document.getElementById('nodebb-comments-category');
+  XHR.onload = function () {
+    if (XHR.status >= 200 && XHR.status < 400) {
+      var data = JSON.parse(XHR.responseText),
+        html;
 
-			data.relative_path = nodeBBURL;
-			data.redirect_url = articlePath;
-			data.article_id = articleID;
-			data.pagination = pagination;
-			data.postCount = parseInt(data.postCount, 10);
+      // insert by Howard at 2020/5/26
+      if (data.user.picture == null) data.user.picture = false;
+      data.posts.forEach((post) => {
+        if (post.user.picture == null) post.user.picture = false;
+      });
+      // insert end
 
-			for (var post in data.posts) {
-				if (data.posts.hasOwnProperty(post)) {
-					data.posts[post].timestamp = timeAgo(parseInt(data.posts[post].timestamp), 10);
-					if (data.posts[post]['blog-comments:url']) {
-						delete data.posts[post];
-					}
-				}
-			}
-			
-			if (commentsCounter) {
-				commentsCounter.innerHTML = data.postCount ? (data.postCount - 1) : 0;
-			}
+      commentsDiv = document.getElementById("nodebb-comments-list");
+      commentsCounter = document.getElementById("nodebb-comments-count");
+      commentsAuthor = document.getElementById("nodebb-comments-author");
+      commentsCategory = document.getElementById("nodebb-comments-category");
 
-			if (commentsCategory) {
-				commentsCategory.innerHTML = '<a href="' + nodeBBURL + '/category/' + data.category.slug + '">' + data.category.name + '</a>';
-			}
+      data.relative_path = nodeBBURL;
+      data.redirect_url = articlePath;
+      data.article_id = articleID;
+      data.pagination = pagination;
+      data.postCount = parseInt(data.postCount, 10);
 
-			if (commentsAuthor) {
-				commentsAuthor.innerHTML = '<span class="nodebb-author"><img src="' + data.mainPost.user.picture + '" /> <a href="' + nodeBBURL + '/user/' + data.mainPost.user.userslug + '">' + data.mainPost.user.username + '</a></span>';
-			}
+      for (var post in data.posts) {
+        if (data.posts.hasOwnProperty(post)) {
+          data.posts[post].timestamp = timeAgo(
+            parseInt(data.posts[post].timestamp),
+            10
+          );
+          if (data.posts[post]["blog-comments:url"]) {
+            delete data.posts[post];
+          }
+        }
+      }
 
-			if (pagination) {
-				html = normalizePost(parse(data, templates.blocks['posts']));
-				commentsDiv.innerHTML = commentsDiv.innerHTML + html;	
-			} else {
-				html = parse(data, data.template);
-				nodebbDiv.innerHTML = normalizePost(html);
-			}
+      if (commentsCounter) {
+        commentsCounter.innerHTML = data.postCount ? data.postCount - 1 : 0;
+      }
 
-			contentDiv = document.getElementById('nodebb-content');
+      if (commentsCategory) {
+        commentsCategory.innerHTML =
+          '<a href="' +
+          nodeBBURL +
+          "/category/" +
+          data.category.slug +
+          '">' +
+          data.category.name +
+          "</a>";
+      }
 
-			setTimeout(function() {
-				var lists = nodebbDiv.getElementsByTagName("li");
-				for (var list in lists) {
-					if (lists.hasOwnProperty(list)) {
-						lists[list].className = '';
-					}
-				}
-			}, 100);
-			
-			if (savedText) {
-				contentDiv.value = savedText;
-			}
+      if (commentsAuthor) {
+        commentsAuthor.innerHTML =
+          '<span class="nodebb-author"><img src="' +
+          data.mainPost.user.picture +
+          '" /> <a href="' +
+          nodeBBURL +
+          "/user/" +
+          data.mainPost.user.userslug +
+          '">' +
+          data.mainPost.user.username +
+          "</a></span>";
+      }
 
-			if (data.tid) {
-				var loadMore = document.getElementById('nodebb-load-more');
-				loadMore.onclick = function() {
-					pagination++;
-					reloadComments();
-				}
-				if (data.posts.length) {
-					loadMore.style.display = 'inline-block';	
-				}
+      if (pagination) {
+        html = normalizePost(parse(data, templates.blocks["posts"]));
+        commentsDiv.innerHTML = commentsDiv.innerHTML + html;
+      } else {
+        html = parse(data, data.template);
+        nodebbDiv.innerHTML = normalizePost(html);
+      }
 
-				if (pagination * 10 + data.posts.length + 1 >= data.postCount) {
-					loadMore.style.display = 'none';
-				}
+      contentDiv = document.getElementById("nodebb-content");
 
-				if (typeof jQuery !== 'undefined' && jQuery() && jQuery().fitVids) {
-					jQuery(nodebbDiv).fitVids();
-				}
+      setTimeout(function () {
+        var lists = nodebbDiv.getElementsByTagName("li");
+        for (var list in lists) {
+          if (lists.hasOwnProperty(list)) {
+            lists[list].className = "";
+          }
+        }
+      }, 100);
 
-				if (data.user && data.user.uid) {
-					var error = window.location.href.match(/error=[\w-]*/);
-					if (error) {
-						error = error[0].split('=')[1];
-						if (error === 'too-many-posts') {
-							error = 'Please wait before posting so soon.';
-						} else if (error === 'content-too-short') {
-							error = 'Please post a longer reply.';
-						}
+      if (savedText) {
+        contentDiv.value = savedText;
+      }
 
-						document.getElementById('nodebb-error').innerHTML = error;
-					}					
-				} else {
-					document.getElementById('nodebb-register').onclick = function() {
-						authenticate('register');
-					};
+      if (data.tid) {
+        var loadMore = document.getElementById("nodebb-load-more");
+        loadMore.onclick = function () {
+          pagination++;
+          reloadComments();
+        };
+        if (data.posts.length) {
+          loadMore.style.display = "inline-block";
+        }
 
-					document.getElementById('nodebb-login').onclick = function() {
-						authenticate('login');
-					}
-				}
-			} else {
-				if (data.isAdmin) {
-						if (articleData) {
-							var translator = document.createElement('span'),
-								gTags = articleData.tags,
-								url = articleData.url,
-								title= articleData.title_plain,
-								cid = articleData.cid || -1,
-								tags = [];
-							translator.innerHTML = articleData.markDownContent;
+        if (pagination * 10 + data.posts.length + 1 >= data.postCount) {
+          loadMore.style.display = "none";
+        }
 
-							var markdown = translator.firstChild.innerHTML + '\n\n**Click [here]('+ url +') to see the full blog post**';
+        if (typeof jQuery !== "undefined" && jQuery() && jQuery().fitVids) {
+          jQuery(nodebbDiv).fitVids();
+        }
 
-							for (var tag in gTags) {
-								if (gTags.hasOwnProperty(tag)) {
-									tags.push(gTags[tag].title);
-								}
-							}
-							document.getElementById('nodebb-content-markdown').value = markdown;
-							document.getElementById('nodebb-content-title').value = title;
-							document.getElementById('nodebb-content-cid').value = cid;
-							document.getElementById('nodebb-content-tags').value = JSON.stringify(tags);
-						} else {
-							console.error('Declare articleData variable!');
-						}
-				}
-			}
-		}
-	};
+        if (data.user && data.user.uid) {
+          var error = window.location.href.match(/error=[\w-]*/);
+          if (error) {
+            error = error[0].split("=")[1];
+            if (error === "too-many-posts") {
+              error = "Please wait before posting so soon.";
+            } else if (error === "content-too-short") {
+              error = "Please post a longer reply.";
+            }
 
-	function reloadComments() {
-		XHR.open('GET', nodeBBURL + '/comments/get/' + articleID + '/' + pagination, true);
-		XHR.withCredentials = true;
-		XHR.send();
-	}
+            document.getElementById("nodebb-error").innerHTML = error;
+          }
+        } else {
+          document.getElementById("nodebb-register").onclick = function () {
+            authenticate("register");
+          };
 
-	reloadComments();
+          document.getElementById("nodebb-login").onclick = function () {
+            authenticate("login");
+          };
+        }
+      } else {
+        if (data.isAdmin) {
+          if (articleData) {
+            var translator = document.createElement("span"),
+              gTags = articleData.tags,
+              url = articleData.url,
+              title = articleData.title_plain,
+              cid = articleData.cid || -1,
+              tags = [];
+            translator.innerHTML = articleData.markDownContent;
 
+            var markdown =
+              articleData.markDownContent +
+              "**點擊 [這裡](" +
+              url +
+              ") 查看提案內容**";
 
-	function timeAgo(time){
-		var time_formats = [
-			[60, 'seconds', 1],
-			[120, '1 minute ago'],
-			[3600, 'minutes', 60],
-			[7200, '1 hour ago'],
-			[86400, 'hours', 3600],
-			[172800, 'yesterday'],
-			[604800, 'days', 86400],
-			[1209600, 'last week'],
-			[2419200, 'weeks', 604800],
-			[4838400, 'last month'],
-			[29030400, 'months', 2419200],
-			[58060800, 'last year'],
-			[2903040000, 'years', 29030400]
-		];
+            for (var tag in gTags) {
+              if (gTags.hasOwnProperty(tag)) {
+                tags.push(gTags[tag].title);
+              }
+            }
+            document.getElementById("nodebb-content-markdown").value = markdown;
+            document.getElementById("nodebb-content-title").value = title;
+            document.getElementById("nodebb-content-cid").value = cid;
+            document.getElementById(
+              "nodebb-content-tags"
+            ).value = JSON.stringify(tags);
+          } else {
+            console.error("Declare articleData variable!");
+          }
+        }
+      }
+    }
+  };
 
-		var seconds = (+new Date() - time) / 1000;
+  function reloadComments() {
+    XHR.open(
+      "GET",
+      nodeBBURL + "/comments/get/" + articleID + "/" + pagination,
+      true
+    );
+    XHR.withCredentials = true;
+    XHR.send();
+  }
 
-		if (seconds < 10) {
-			return 'just now';
-		}
-		
-		var i = 0, format;
-		while (format = time_formats[i++]) {
-			if (seconds < format[0]) {
-				if (!format[2]) {
-					return format[1];
-				} else {
-					return Math.floor(seconds / format[2]) + ' ' + format[1] + ' ago';
-				}
-			}
-		}
-		return time;
-	}
+  reloadComments();
 
-	var templates = {blocks: {}};
-	function parse (data, template) {
-		function replace(key, value, template) {
-			var searchRegex = new RegExp('{' + key + '}', 'g');
-			return template.replace(searchRegex, value);
-		}
+  function timeAgo(time) {
+    var time_formats = [
+      [60, "秒", 1],
+      [120, "1 分鐘前"],
+      [3600, "分鐘", 60],
+      [7200, "1 小時前"],
+      [86400, "小時", 3600],
+      [172800, "昨天"],
+      [604800, "天", 86400],
+      [1209600, "上週"],
+      [2419200, "週", 604800],
+      [4838400, "上個月"],
+      [29030400, "月", 2419200],
+      [58060800, "去年"],
+      [2903040000, "年", 29030400],
+    ];
 
-		function makeRegex(block) {
-			return new RegExp("<!--[\\s]*BEGIN " + block + "[\\s]*-->[\\s\\S]*<!--[\\s]*END " + block + "[\\s]*-->", 'g');
-		}
+    var seconds = (+new Date() - time) / 1000;
 
-		function makeConditionalRegex(block) {
-			return new RegExp("<!--[\\s]*IF " + block + "[\\s]*-->([\\s\\S]*?)<!--[\\s]*ENDIF " + block + "[\\s]*-->", 'g');
-		}
+    if (seconds < 10) {
+      return "剛剛";
+    }
 
-		function getBlock(regex, block, template) {
-			data = template.match(regex);
-			if (data == null) return;
+    var i = 0,
+      format;
+    while ((format = time_formats[i++])) {
+      if (seconds < format[0]) {
+        if (!format[2]) {
+          return format[1];
+        } else {
+          return Math.floor(seconds / format[2]) + " " + format[1] + "前";
+        }
+      }
+    }
+    return time;
+  }
 
-			if (block !== undefined) templates.blocks[block] = data[0];
+  var templates = { blocks: {} };
+  function parse(data, template) {
+    //console.log(template);
+    function replace(key, value, template) {
+      var searchRegex = new RegExp("{" + key + "}", "g");
+      return template.replace(searchRegex, value);
+    }
 
-			var begin = new RegExp("(\r\n)*<!-- BEGIN " + block + " -->(\r\n)*", "g"),
-				end = new RegExp("(\r\n)*<!-- END " + block + " -->(\r\n)*", "g"),
+    function makeRegex(block) {
+      return new RegExp(
+        "<!--[\\s]*BEGIN " +
+          block +
+          "[\\s]*-->[\\s\\S]*<!--[\\s]*END " +
+          block +
+          "[\\s]*-->",
+        "g"
+      );
+    }
 
-			data = data[0]
-				.replace(begin, "")
-				.replace(end, "");
+    function makeConditionalRegex(block) {
+      return new RegExp(
+        "<!--[\\s]*IF " +
+          block +
+          "[\\s]*-->([\\s\\S]*?)<!--[\\s]*ENDIF " +
+          block +
+          "[\\s]*-->",
+        "g"
+      );
+    }
 
-			return data;
-		}
+    function getBlock(regex, block, template) {
+      data = template.match(regex);
+      if (data == null) return;
 
-		function setBlock(regex, block, template) {
-			return template.replace(regex, block);
-		}
+      if (block !== undefined) templates.blocks[block] = data[0];
 
-		var regex, block;
+      var begin = new RegExp("(\r\n)*<!-- BEGIN " + block + " -->(\r\n)*", "g"),
+        end = new RegExp("(\r\n)*<!-- END " + block + " -->(\r\n)*", "g"),
+        data = data[0].replace(begin, "").replace(end, "");
 
-		return (function parse(data, namespace, template, blockInfo) {
-			if (!data || data.length == 0) {
-				template = '';
-			}
+      return data;
+    }
 
-			function checkConditional(key, value) {
-				var conditional = makeConditionalRegex(key),
-					matches = template.match(conditional);
+    function setBlock(regex, block, template) {
+      return template.replace(regex, block);
+    }
 
-				if (matches !== null) {
-					for (var i = 0, ii = matches.length; i < ii; i++) {
-						var conditionalBlock = matches[i].split(/<!-- ELSE -->/);
+    var regex, block;
 
-						var statement = new RegExp("(<!--[\\s]*IF " + key + "[\\s]*-->)|(<!--[\\s]*ENDIF " + key + "[\\s]*-->)", 'gi');
+    return (function parse(data, namespace, template, blockInfo) {
+      //debugger;
+      //console.log(template);
+      if (!data || data.length == 0) {
+        template = "";
+      }
 
-						if (conditionalBlock[1]) {
-							// there is an else statement
-							if (!value) {
-								template = template.replace(matches[i], conditionalBlock[1].replace(statement, ''));
-							} else {
-								template = template.replace(matches[i], conditionalBlock[0].replace(statement, ''));
-							}
-						} else {
-							// regular if statement
-							if (!value) {
-								template = template.replace(matches[i], '');
-							} else {
-								template = template.replace(matches[i], matches[i].replace(statement, ''));
-							}
-						}
-					}
-				}
-			}
+      function checkConditional(key, value) {
+        var conditional = makeConditionalRegex(key),
+          matches = template.match(conditional);
 
-			for (var d in data) {
-				if (data.hasOwnProperty(d)) {
-					if (typeof data[d] === 'undefined') {
-						continue;
-					} else if (data[d] === null) {
-						template = replace(namespace + d, '', template);
-					} else if (data[d].constructor == Array) {
-						checkConditional(namespace + d + '.length', data[d].length);
-						checkConditional('!' + namespace + d + '.length', !data[d].length);
+        if (matches !== null) {
+          for (var i = 0, ii = matches.length; i < ii; i++) {
+            var conditionalBlock = matches[i].split(/<!-- ELSE -->/);
 
-						namespace += d + '.';
+            var statement = new RegExp(
+              "(<!--[\\s]*IF " +
+                key +
+                "[\\s]*-->)|(<!--[\\s]*ENDIF " +
+                key +
+                "[\\s]*-->)",
+              "gi"
+            );
 
-						var regex = makeRegex(d),
-							block = getBlock(regex, namespace.substring(0, namespace.length - 1), template);
+            if (conditionalBlock[1]) {
+              // there is an else statement
+              if (!value) {
+                template = template.replace(
+                  matches[i],
+                  conditionalBlock[1].replace(statement, "")
+                );
+              } else {
+                template = template.replace(
+                  matches[i],
+                  conditionalBlock[0].replace(statement, "")
+                );
+              }
+            } else {
+              // regular if statement
+              if (!value) {
+                template = template.replace(matches[i], "");
+              } else {
+                template = template.replace(
+                  matches[i],
+                  matches[i].replace(statement, "")
+                );
+              }
+            }
+          }
+        }
+      }
 
-						if (block == null) {
-							namespace = namespace.replace(d + '.', '');
-							continue;
-						}
+      for (var d in data) {
+        if (data.hasOwnProperty(d)) {
+          if (typeof data[d] === "undefined") {
+            continue;
+          } else if (data[d] === null) {
+            template = replace(namespace + d, "", template);
+          } else if (data[d].constructor == Array) {
+            checkConditional(namespace + d + ".length", data[d].length);
+            checkConditional("!" + namespace + d + ".length", !data[d].length);
 
-						var numblocks = data[d].length - 1,
-							i = 0,
-							result = "";
+            namespace += d + ".";
 
-						do {
-							result += parse(data[d][i], namespace, block, {iterator: i, total: numblocks});
-						} while (i++ < numblocks);
+            var regex = makeRegex(d),
+              block = getBlock(
+                regex,
+                namespace.substring(0, namespace.length - 1),
+                template
+              );
 
-						namespace = namespace.replace(d + '.', '');
-						template = setBlock(regex, result, template);
-					} else if (data[d] instanceof Object) {
-						template = parse(data[d], d + '.', template);
-					} else {
-						var key = namespace + d,
-							value = typeof data[d] === 'string' ? data[d].replace(/^\s+|\s+$/g, '') : data[d];
+            if (block == null) {
+              namespace = namespace.replace(d + ".", "");
+              continue;
+            }
 
-						checkConditional(key, value);
-						checkConditional('!' + key, !value);
+            var numblocks = data[d].length - 1,
+              i = 0,
+              result = "";
 
-						if (blockInfo && blockInfo.iterator) {
-							checkConditional('@first', blockInfo.iterator === 0);
-							checkConditional('!@first', blockInfo.iterator !== 0);
-							checkConditional('@last', blockInfo.iterator === blockInfo.total);
-							checkConditional('!@last', blockInfo.iterator !== blockInfo.total);
-						}
+            do {
+              result += parse(data[d][i], namespace, block, {
+                iterator: i,
+                total: numblocks,
+              });
+            } while (i++ < numblocks);
 
-						template = replace(key, value, template);
-					}
-				}
-			}
+            namespace = namespace.replace(d + ".", "");
+            template = setBlock(regex, result, template);
+          } else if (data[d] instanceof Object) {
+            template = parse(data[d], d + ".", template);
+          } else {
+            var key = namespace + d,
+              value =
+                typeof data[d] === "string"
+                  ? data[d].replace(/^\s+|\s+$/g, "")
+                  : data[d];
 
-			if (namespace) {
-				var regex = new RegExp("{" + namespace + "[\\s\\S]*?}", 'g');
-				template = template.replace(regex, '');
-				namespace = '';
-			} else {
-				// clean up all undefined conditionals
-				template = template.replace(/<!-- ELSE -->/gi, 'ENDIF -->')
-									.replace(/<!-- IF([^@]*?)ENDIF([^@]*?)-->/gi, '');
-			}
+            checkConditional(key, value);
+            checkConditional("!" + key, !value);
 
-			return template;
+            if (blockInfo && blockInfo.iterator) {
+              checkConditional("@first", blockInfo.iterator === 0);
+              checkConditional("!@first", blockInfo.iterator !== 0);
+              checkConditional("@last", blockInfo.iterator === blockInfo.total);
+              checkConditional(
+                "!@last",
+                blockInfo.iterator !== blockInfo.total
+              );
+            }
 
-		})(data, "", template);
-	}
-}());
+            template = replace(key, value, template);
+          }
+        }
+      }
+
+      if (namespace) {
+        var regex = new RegExp("{" + namespace + "[\\s\\S]*?}", "g");
+        template = template.replace(regex, "");
+        namespace = "";
+      } else {
+        // clean up all undefined conditionals
+        template = template
+          .replace(/<!-- ELSE -->/gi, "ENDIF -->")
+          .replace(/<!-- IF([^@]*?)ENDIF([^@]*?)-->/gi, "");
+      }
+
+      return template;
+    })(data, "", template);
+  }
+})();
