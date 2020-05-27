@@ -7,7 +7,7 @@
 			<img src="https://1.gravatar.com/avatar/177d180983be7a2c95a4dbe7451abeba?s=95&d=&r=PG" class="profile-image" />
 			<!-- ENDIF isLoggedIn -->
 		</div>
-		<form action="{relative_path}/comments/reply" method="post">
+		<form class="hidden" action="{relative_path}/comments/reply" method="post">
 			<textarea id="nodebb-content" class="form-control" name="content" placeholder="Join the conversation" rows="3"></textarea>
 		<!-- IF isLoggedIn -->
 			<small>Signed in as <strong>{user.username}</strong>. <strong id="nodebb-error"></strong></small>
@@ -32,14 +32,14 @@
 					<div class="topic-profile-pic">
 						<a href="{relative_path}/user/{user.userslug}">
 							<!-- IF user.picture -->
-							<img src="{user.picture}" alt="{user.username}" class="profile-image" title="{user.username}">
+							<img src="{user.picture}" alt="{user.username}" class="profile-image" title="{user.username}" />
 							<!-- ELSE -->
 							<div class="profile-image" style="background-color: {user.icon:bgColor}" title="{user.username}" alt="{user.username}">{user.icon:text}</div>
 							<!-- ENDIF user.picture -->
 						</a>
 					</div>
 					<div class="topic-text">
-						<div class="post-content" itemprop="text"><small><strong>{user.username}</strong> commented {posts.timestamp}</small><br />{posts.content}</div>
+						<div class="post-content" itemprop="text"><small><strong>{user.username}</strong> 於 {posts.timestamp} 回覆</small><br />{posts.content}</div>
 					</div>
 				</div>
 			</div>
@@ -56,7 +56,7 @@
 			<img src="http://1.gravatar.com/avatar/177d180983be7a2c95a4dbe7451abeba?s=95&d=&r=PG" class="profile-image" />
 			<!-- ENDIF isLoggedIn -->
 		</div>
-		<form action="{relative_path}/comments/reply" method="post">
+		<form class="hidden" action="{relative_path}/comments/reply" method="post">
 			<textarea id="nodebb-content" class="form-control" name="content" placeholder="Join the conversation" rows="3"></textarea>
 		<!-- IF isLoggedIn -->
 			<small>Signed in as <strong>{user.username}</strong>. <strong id="nodebb-error"></strong></small>
@@ -72,14 +72,14 @@
 		<br />
 		<!-- ENDIF isLoggedIn -->
 	<!-- ENDIF atBottom -->
-
-	<small class="nodebb-copyright">Powered by <a href="http://nodebb.org" target="_blank">NodeBB</a> &bull; <a href="{relative_path}/topic/{tid}">View original thread</a></small>
+	<a href="{relative_path}/topic/{tid}"><button class="pull-left btn btn-primary">繼續討論</button></a>
+	<small class="hidden nodebb-copyright">Powered by <a href="http://nodebb.org" target="_blank">NodeBB</a> &bull; <a href="{relative_path}/topic/{tid}">View original thread</a></small>
 	<button class="btn btn-primary" <!-- IF !posts.length -->style="display: none"<!-- ENDIF !posts.length --> id="nodebb-load-more">Load more comments...</button>
 <!-- ELSE -->
-	Commenting has been disabled.
+	討論區還未開啟，請聯絡管理員開啟。
 	<!-- IF isAdmin -->
 	<form action="{relative_path}/comments/publish" method="post">
-		<button class="btn btn-primary">Publish this article to NodeBB</button>
+		<button class="btn btn-primary">開啟討論區</button>
 		<input type="hidden" name="markdown" id="nodebb-content-markdown" />
 		<input type="hidden" name="title" id="nodebb-content-title" />
 		<input type="hidden" name="cid" id="nodebb-content-cid" />
