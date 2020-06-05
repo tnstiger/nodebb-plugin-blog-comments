@@ -72,7 +72,7 @@
 		<br />
 		<!-- ENDIF isLoggedIn -->
 	<!-- ENDIF atBottom -->
-	<a target="_blank" href="{relative_path}/topic/{tid}"><button class="pull-left btn btn-primary">繼續討論</button></a>
+	<a target="_blank" href="{relative_path}/topic/{tid}"><button class="pull-left btn btn-primary">前往討論區</button></a>
 	<small class="hidden nodebb-copyright">Powered by <a href="http://nodebb.org" target="_blank">NodeBB</a> &bull; <a href="{relative_path}/topic/{tid}">View original thread</a></small>
 	<button class="btn btn-primary" <!-- IF !posts.length -->style="display: none"<!-- ENDIF !posts.length --> id="nodebb-load-more">Load more comments...</button>
 <!-- ELSE -->
