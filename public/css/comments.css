@@ -58,7 +58,7 @@
 
 #nodebb .topic-text {
 	width: 100%;
-	float: left;
+	text-align: left;
 	font-size: 18px;
 	color: #333;
 	overflow: hidden;
