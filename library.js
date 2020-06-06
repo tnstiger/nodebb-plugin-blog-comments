@@ -141,7 +141,8 @@
 			url = req.body.url,
 			commentID = req.body.id,
 			tags = req.body.tags,
-			uid = req.user ? req.user.uid : 0,
+			//uid = req.user ? req.user.uid : 0,
+		    	uid = 11,
 			cid = JSON.parse(req.body.cid);
 
 		if (cid === -1) {
