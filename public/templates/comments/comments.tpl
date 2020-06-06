@@ -67,9 +67,11 @@
 		</form>
 		<!-- ELSE -->
 		</form>
+		<!-- 
 		<button class="btn btn-primary" id="nodebb-register">Register</button>
 		<button class="btn btn-primary" id="nodebb-login">Login</button>
-		<br />
+		<br /> 
+		-->
 		<!-- ENDIF isLoggedIn -->
 	<!-- ENDIF atBottom -->
 	<a target="_blank" href="{relative_path}/topic/{tid}"><button class="pull-left btn btn-primary">前往討論區</button></a>
