@@ -186,6 +186,7 @@
 			}, function(err, result) {
 				if (!err && result && result.postData && result.postData.tid) {
 					posts.setPostField(result.postData.pid, 'blog-comments:url', url, function(err) {
+						console.log(err);
 						if (err) {
 							return res.json({error: "Unable to post topic", result: result});		
 						}
