@@ -81,7 +81,6 @@
 	<button class="btn btn-primary" <!-- IF !posts.length -->style="display: none"<!-- ENDIF !posts.length --> id="nodebb-load-more">Load more comments...</button>
 <!-- ELSE -->
 	討論區還未開啟，請聯絡管理員開啟。
-	<!-- IF isAdmin -->
 	<form action="{relative_path}/comments/publish" method="post">
 		<button class="btn btn-primary">開啟討論區</button>
 		<input type="hidden" name="markdown" id="nodebb-content-markdown" />
@@ -92,5 +91,4 @@
 		<input type="hidden" name="url" value="{redirect_url}" />
 		<input type="hidden" name="_csrf" value="{token}" />
 	</form>
-	<!-- ENDIF isAdmin -->
 <!-- ENDIF tid -->
